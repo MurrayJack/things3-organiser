@@ -1,0 +1,15 @@
+{
+  "name": "src",
+  "version": "1.0.0",
+  "type": "module",
+  "scripts": {
+    "start": "npx tsx src/index.ts"
+  },
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "devDependencies": {
+    "ts-node": "^10.9.2",
+    "typescript": "^5.9.2"
+  }
+}
