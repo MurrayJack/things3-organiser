@@ -3,8 +3,9 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start1": "npx tsx src/index.ts",
-    "start": "npx tsx src/mcpServer.ts",
+    "start:organizer": "npx tsx src/index.ts",
+    "start:mcp": "npx tsx src/mcpServer.ts",
+    "start": "concurrently \"npx tsx src/mcpServer.ts\" \"npx tsx src/index.ts\" --names \"server,organizer\" --prefix-colors \"cyan,green\"",
     "docker:build": "docker build -t things3-organiser .",
     "docker:run": "docker run -d --name things3-organiser things3-organiser",
     "docker:start": "docker start things3-organiser",
@@ -19,6 +20,7 @@
   "devDependencies": {
     "@types/cors": "^2.8.19",
     "@types/express": "^5.0.3",
+    "concurrently": "^9.2.0",
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
   },

@@ -10,7 +10,14 @@ import cors from "cors";
 import { buildServer } from "./core/mcp";
 
 const app = express();
-app.use(express.json());
+app.use(express.json({ limit: "10mb" })); // Increase JSON payload limit
+
+// Add request timeout middleware
+app.use((req, res, next) => {
+  req.setTimeout(30000); // 30 second timeout
+  res.setTimeout(30000);
+  next();
+});
 
 // Add CORS middleware before your MCP routes
 app.use(
@@ -27,53 +34,70 @@ const transports: { [sessionId: string]: StreamableHTTPServerTransport } = {};
 
 // Handle POST requests for client-to-server communication
 app.post("/mcp", async (req: express.Request, res: express.Response) => {
-  // Check for existing session ID
-  const sessionId = req.headers["mcp-session-id"] as string | undefined;
-  let transport: StreamableHTTPServerTransport;
+  try {
+    console.log("Received MCP request:", JSON.stringify(req.body, null, 2));
 
-  if (sessionId && transports[sessionId]) {
-    // Reuse existing transport
-    transport = transports[sessionId];
-  } else if (!sessionId && isInitializeRequest(req.body)) {
-    // New initialization request
-    transport = new StreamableHTTPServerTransport({
-      sessionIdGenerator: () => randomUUID(),
-      onsessioninitialized: (sessionId) => {
-        // Store the transport by session ID
-        transports[sessionId] = transport;
-      },
-      // DNS rebinding protection is disabled by default for backwards compatibility. If you are running this server
-      // locally, make sure to set:
-      // enableDnsRebindingProtection: true,
-      // allowedHosts: ['127.0.0.1'],
-    });
+    // Check for existing session ID
+    const sessionId = req.headers["mcp-session-id"] as string | undefined;
+    let transport: StreamableHTTPServerTransport;
 
-    // Clean up transport when closed
-    transport.onclose = () => {
-      if (transport.sessionId) {
-        delete transports[transport.sessionId];
-      }
-    };
+    if (sessionId && transports[sessionId]) {
+      // Reuse existing transport
+      transport = transports[sessionId];
+    } else if (!sessionId && isInitializeRequest(req.body)) {
+      // New initialization request
+      transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        onsessioninitialized: (sessionId) => {
+          // Store the transport by session ID
+          transports[sessionId] = transport;
+          console.log(`New session initialized: ${sessionId}`);
+        },
+        // DNS rebinding protection is disabled by default for backwards compatibility. If you are running this server
+        // locally, make sure to set:
+        // enableDnsRebindingProtection: true,
+        // allowedHosts: ['127.0.0.1'],
+      });
 
-    const server = buildServer();
+      // Clean up transport when closed
+      transport.onclose = () => {
+        if (transport.sessionId) {
+          delete transports[transport.sessionId];
+          console.log(`Session closed: ${transport.sessionId}`);
+        }
+      };
 
-    // Connect to the MCP server
-    await server.connect(transport);
-  } else {
-    // Invalid request
-    res.status(400).json({
+      const server = buildServer();
+
+      // Connect to the MCP server
+      await server.connect(transport);
+    } else {
+      // Invalid request
+      res.status(400).json({
+        jsonrpc: "2.0",
+        error: {
+          code: -32000,
+          message: "Bad Request: No valid session ID provided",
+        },
+        id: null,
+      });
+      return;
+    }
+
+    // Handle the request
+    await transport.handleRequest(req, res, req.body);
+  } catch (error) {
+    console.error("Error handling MCP request:", error);
+    res.status(500).json({
       jsonrpc: "2.0",
       error: {
-        code: -32000,
-        message: "Bad Request: No valid session ID provided",
+        code: -32603,
+        message: "Internal server error",
+        data: error instanceof Error ? error.message : "Unknown error",
       },
-      id: null,
+      id: req.body?.id || null,
     });
-    return;
   }
-
-  // Handle the request
-  await transport.handleRequest(req, res, req.body);
 });
 
 // Reusable handler for GET and DELETE requests

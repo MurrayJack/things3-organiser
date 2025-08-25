@@ -41,6 +41,37 @@ export const getInboxData = async (): Promise<InboxData[]> => {
   return JSON.parse(response) as InboxData[];
 };
 
+export const getTodaysData = async (): Promise<InboxData[]> => {
+  const getTodayListScript = `
+                function buildJson() {
+                    const app = Application('Things');
+                    const inbox = app.lists.byName('Today');
+                    const todos = inbox.toDos();
+                    const json = todos.map(t => {
+                        const area = t.area() ? t.area().name() : undefined;
+                        const project = t.project() ? t.project().name() : undefined;
+                        const tags = t.tags().map(tag => tag.name());
+                        return {
+                            id: t.id(),
+                            name: t.name(),
+                            status: t.status(),
+                            notes: t.notes(),
+                            tags: tags,
+                            project: project,
+                            dueDate: t.dueDate() ? t.dueDate().toString() : undefined
+                        };
+                    });
+                    return JSON.stringify(json);
+                }
+                buildJson();
+            `
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, " ");
+
+  const response = await _executeScript(getTodayListScript);
+  return JSON.parse(response) as InboxData[];
+};
+
 export function getThingsTags(): Promise<string[]> {
   const getTagsScript = `
                 function buildJson() {
@@ -112,14 +143,27 @@ export function updateTodoItem(todo: InboxData): Promise<void> {
 function _executeScript(script: string): Promise<string> {
   const osascript = `osascript -l JavaScript -e  "${script}"`;
 
-  return new Promise((resolve) => {
-    exec(osascript, (err, stdout, stderr) => {
+  return new Promise((resolve, reject) => {
+    const child = exec(osascript, { timeout: 10000 }, (err, stdout, stderr) => {
       if (err) {
-        // console.error("Error executing script:", err);
-        resolve(err.message);
+        console.error("Error executing script:", err);
+        reject(new Error(`AppleScript execution failed: ${err.message}`));
+        return;
       }
 
-      resolve(stdout);
+      if (stderr) {
+        console.error("AppleScript stderr:", stderr);
+        reject(new Error(`AppleScript error: ${stderr}`));
+        return;
+      }
+
+      resolve(stdout.trim());
+    });
+
+    // Handle timeout
+    child.on("timeout", () => {
+      console.error("AppleScript execution timed out");
+      reject(new Error("AppleScript execution timed out after 10 seconds"));
     });
   });
 }

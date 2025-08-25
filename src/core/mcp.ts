@@ -7,6 +7,7 @@ import {
   getInboxData,
   getThingsTags,
   getThingsProjects,
+  getTodaysData,
   updateTodoItem,
 } from "../things3.js";
 
@@ -21,7 +22,8 @@ export const buildServer = () => {
     "get_things3_inbox",
     {
       title: "Get Things3 Inbox",
-      description: "Retrieves all items from the Things3 inbox",
+      description:
+        "Retrieves all items from the Things3 inbox, this inbox are items that have not yet been processed",
       inputSchema: {},
     },
     async () => {
@@ -47,6 +49,57 @@ export const buildServer = () => {
             {
               type: "text",
               text: `Error retrieving Things3 inbox data: ${
+                error instanceof Error ? error.message : "Unknown error"
+              }`,
+            },
+          ],
+        };
+      }
+    }
+  );
+
+  server.registerTool(
+    "get_things3_today",
+    {
+      title: "Get Things3 Today",
+      description: "Retrieves all items from the Things3 today list",
+      inputSchema: {},
+    },
+    async () => {
+      try {
+        console.log("Getting today's data...");
+        const inboxData = await getTodaysData();
+        console.log(`Retrieved ${inboxData.length} items from today's list`);
+
+        // Limit response size to prevent context overflow
+        const limitedData = inboxData.slice(0, 50); // Only first 50 items
+        const responseText = `Found ${
+          inboxData.length
+        } items in Things3 today list (showing first ${
+          limitedData.length
+        }):\n\n${JSON.stringify(
+          limitedData.map((e) => ({ name: e.name, id: e.id })),
+          null,
+          2
+        )}`;
+
+        console.log(`Response text length: ${responseText.length} characters`);
+
+        return {
+          content: [
+            {
+              type: "text",
+              text: responseText,
+            },
+          ],
+        };
+      } catch (error) {
+        console.error("Error in get_things3_today:", error);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error retrieving Things3 today data: ${
                 error instanceof Error ? error.message : "Unknown error"
               }`,
             },
