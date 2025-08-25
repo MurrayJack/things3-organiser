@@ -1,9 +1,5 @@
-import {
-  serviceCall,
-  buildProjectSelectionPrompt,
-  buildAddNotesToTodoPrompt,
-  correctSpellingAndPunctuationPrompt,
-} from "./LmStudio";
+import { fetchPrompt, getLangFusePrompt } from "./core/langFuse";
+import { serviceCall } from "./core/LmStudio";
 import {
   getInboxData,
   getThingsProjects,
@@ -32,28 +28,25 @@ import {
       console.log("Processing TODO item:", todo.name);
 
       // using LM Studio connect the item to a project
-      const project = await serviceCall(
-        buildProjectSelectionPrompt(todo, projects)
-      );
+      const prompt = await fetchPrompt("");
 
-      // add any notes
-      // const notes = await serviceCall(buildAddNotesToTodoPrompt(todo));
+      if (!prompt) {
+        console.error("Failed to fetch prompt");
+        continue;
+      }
 
-      // correct spelling and punctuation
-      // const corrected = await serviceCall(
-      //   correctSpellingAndPunctuationPrompt(todo)
-      // );
+      const project = await serviceCall(prompt);
 
-      // add any tags
+      console.log(`Suggested project: ${project.content}`);
 
       // update the TODO item with the selected project and tags
-      await updateTodoItem({
-        ...todo,
-        project: project.content,
-        // tags: tags,
-        // notes: notes.content,
-        // name: corrected.content,
-      });
+      // await updateTodoItem({
+      //   ...todo,
+      //   project: project.content,
+      //   // tags: tags,
+      //   // notes: notes.content,
+      //   // name: corrected.content,
+      // });
     }
   }
 
