@@ -1,14 +1,14 @@
 export const serviceCall = async (prompt: string): Promise<any> => {
-  const response = await fetch("http://localhost:12345/v1/chat/completions", {
+  const response = await fetch("http://127.0.0.1:12345/v1/chat/completions", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
     },
     body: JSON.stringify({
-      model: "",
-      messages: [{ role: "user", content: prompt }],
+      model: "microsoft/phi-4",
+      messages: [{ role: "system", content: prompt }],
       temperature: 0.1,
-      max_tokens: 1024,
+      max_tokens: 2000,
     }),
   });
 

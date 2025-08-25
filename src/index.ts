@@ -7,6 +7,9 @@ import {
   updateTodoItem,
 } from "./things3";
 
+import dotenv from "dotenv";
+dotenv.config();
+
 (async () => {
   async function main() {
     // get the items from the inbox
@@ -28,25 +31,42 @@ import {
       console.log("Processing TODO item:", todo.name);
 
       // using LM Studio connect the item to a project
-      const prompt = await fetchPrompt("");
+      const prompt = await fetchPrompt("review-todo-item");
 
       if (!prompt) {
         console.error("Failed to fetch prompt");
         continue;
       }
 
-      const project = await serviceCall(prompt);
+      const filledPrompt = prompt.prompt
+        .replace("{{TODO}}", JSON.stringify(todo, undefined, 4))
+        .replace(
+          "{{PROJECTS}}",
+          JSON.stringify(
+            projects.map((p) => p),
+            undefined,
+            4
+          )
+        )
+        .replace(
+          "{{TAGS}}",
+          JSON.stringify(
+            tags.map((t) => t),
+            undefined,
+            4
+          )
+        );
 
-      console.log(`Suggested project: ${project.content}`);
+      const project = await serviceCall(filledPrompt);
+      const newTodo = JSON.parse(project.content);
 
       // update the TODO item with the selected project and tags
-      // await updateTodoItem({
-      //   ...todo,
-      //   project: project.content,
-      //   // tags: tags,
-      //   // notes: notes.content,
-      //   // name: corrected.content,
-      // });
+      await updateTodoItem({
+        ...todo,
+        project: newTodo.project,
+        notes: newTodo.notes,
+        name: newTodo.name,
+      });
     }
   }
 
