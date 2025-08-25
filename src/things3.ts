@@ -7,6 +7,7 @@ export type InboxData = {
   notes?: string;
   tags: string[];
   dueDate?: string;
+  project?: string;
 };
 
 export const getInboxData = async (): Promise<InboxData[]> => {
@@ -25,6 +26,7 @@ export const getInboxData = async (): Promise<InboxData[]> => {
                             status: t.status(),
                             notes: t.notes(),
                             tags: tags,
+                            project: project,
                             dueDate: t.dueDate() ? t.dueDate().toString() : undefined
                         };
                     });
@@ -36,7 +38,6 @@ export const getInboxData = async (): Promise<InboxData[]> => {
     .replace(/\n/g, " ");
 
   const response = await _executeScript(getTodayListScript);
-  console.log("Response from Things3:", response);
   return JSON.parse(response) as InboxData[];
 };
 
@@ -74,13 +75,47 @@ export function getThingsProjects(): Promise<string[]> {
   );
 }
 
+export function updateTodoItem(todo: InboxData): Promise<void> {
+  const updateScript = `
+                function updateTodo() {
+                    const app = Application('Things');
+                    const t = app.toDos.byId('${todo.id}');
+                    if (t) {
+                        t.name = "${todo.name}";
+                        t.notes = ${todo.notes ? `"${todo.notes}"` : '""'};
+                        
+                        const projectName = ${
+                          todo.project ? `"${todo.project}"` : "null"
+                        };
+
+                        if (projectName) {
+                            const proj = app.projects.byName(projectName);
+                            if (proj) {
+                                t.project = proj;
+                            }
+                        }
+
+                        
+                        app.schedule(t, { for: new Date() });
+                        return "Updated";
+                    }
+                    return "Not found";
+                }
+                updateTodo();
+            `
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, " ");
+
+  return _executeScript(updateScript).then(() => {});
+}
+
 function _executeScript(script: string): Promise<string> {
   const osascript = `osascript -l JavaScript -e  "${script}"`;
 
   return new Promise((resolve) => {
     exec(osascript, (err, stdout, stderr) => {
       if (err) {
-        console.error("Error executing script:", err);
+        // console.error("Error executing script:", err);
         resolve(err.message);
       }
 

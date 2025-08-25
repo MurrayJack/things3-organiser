@@ -3,7 +3,14 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start": "npx tsx src/index.ts"
+    "start": "npx tsx src/mcpServer.ts",
+    "docker:build": "docker build -t things3-organiser .",
+    "docker:run": "docker run -d --name things3-organiser things3-organiser",
+    "docker:start": "docker start things3-organiser",
+    "docker:stop": "docker stop things3-organiser",
+    "docker:logs": "docker logs things3-organiser",
+    "docker:remove": "docker rm things3-organiser",
+    "docker:clean": "docker stop things3-organiser && docker rm things3-organiser"
   },
   "author": "",
   "license": "ISC",
@@ -11,5 +18,10 @@
   "devDependencies": {
     "ts-node": "^10.9.2",
     "typescript": "^5.9.2"
+  },
+  "dependencies": {
+    "@langchain/openai": "^0.6.9",
+    "@modelcontextprotocol/sdk": "^1.17.4",
+    "langfuse": "^3.38.4"
   }
 }
