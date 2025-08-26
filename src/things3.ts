@@ -120,7 +120,8 @@ export function updateTodoItem(todo: InboxData): Promise<void> {
                         };
 
                         if (projectName) {
-                            const proj = app.projects.byName(projectName);
+                            const projects = app.projects();
+                            const proj = projects.filter(p => p.name() === projectName)[0];
                             if (proj) {
                                 t.project = proj;
                             }
@@ -138,6 +139,42 @@ export function updateTodoItem(todo: InboxData): Promise<void> {
     .replace(/\n/g, " ");
 
   return _executeScript(updateScript).then(() => {});
+}
+
+export function getTodosByProject(project: string): Promise<InboxData[]> {
+  const getTodosScript = `
+                function buildJson() {
+                    const app = Application('Things');
+                    const projects = app.projects();
+                    const proj = projects.filter(p => p.name() === '${project}')[0];
+                    if (proj) {
+                        const todos = proj.toDos();
+                        const json = todos.map(t => {
+                            const area = t.area() ? t.area().name() : undefined;
+                            const project = t.project() ? t.project().name() : undefined;
+                            const tags = t.tags().map(tag => tag.name());
+                            return {
+                                id: t.id(),
+                                name: t.name(),
+                                status: t.status(),
+                                notes: t.notes(),
+                                tags: tags,
+                                project: project,
+                                dueDate: t.dueDate() ? t.dueDate().toString() : undefined
+                            };
+                        });
+                        return JSON.stringify(json);
+                    }
+                    return "[]";
+                }
+                buildJson();
+            `
+    .replace(/"/g, '\\"')
+    .replace(/\n/g, " ");
+
+  return _executeScript(getTodosScript).then(
+    (response) => JSON.parse(response) as InboxData[]
+  );
 }
 
 function _executeScript(script: string): Promise<string> {

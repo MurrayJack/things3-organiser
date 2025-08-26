@@ -8,7 +8,7 @@ export const serviceCall = async (prompt: string): Promise<any> => {
       model: "microsoft/phi-4",
       messages: [{ role: "system", content: prompt }],
       temperature: 0.1,
-      max_tokens: 2000,
+      max_tokens: 5000,
     }),
   });
 

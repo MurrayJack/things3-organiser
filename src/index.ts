@@ -40,6 +40,7 @@ dotenv.config();
 
       const filledPrompt = prompt.prompt
         .replace("{{TODO}}", JSON.stringify(todo, undefined, 4))
+        .replace("{{TODAYS_DATE}}", new Date().toISOString().split("T")[0])
         .replace(
           "{{PROJECTS}}",
           JSON.stringify(
@@ -66,6 +67,7 @@ dotenv.config();
         project: newTodo.project,
         notes: newTodo.notes,
         name: newTodo.name,
+        dueDate: newTodo.dueDate,
       });
     }
   }

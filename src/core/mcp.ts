@@ -9,6 +9,7 @@ import {
   getThingsProjects,
   getTodaysData,
   updateTodoItem,
+  getTodosByProject,
 } from "../things3.js";
 
 export const buildServer = () => {
@@ -232,6 +233,45 @@ export const buildServer = () => {
             {
               type: "text",
               text: `Error updating Things3 todo: ${
+                error instanceof Error ? error.message : "Unknown error"
+              }`,
+            },
+          ],
+        };
+      }
+    }
+  );
+
+  server.registerTool(
+    "get_things3_todos_by_project",
+    {
+      title: "Get Things3 Todos by Project",
+      description: "Retrieves all todos for a specific project from Things3",
+      inputSchema: {
+        project: z
+          .string()
+          .describe("The name of the project to retrieve todos for"),
+      },
+    },
+    async ({ project }) => {
+      try {
+        const todos = await getTodosByProject(project);
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Todos for project "${project}":\n${todos
+                .map((todo) => `• ${todo.name}`)
+                .join("\n")}`,
+            },
+          ],
+        };
+      } catch (error) {
+        return {
+          content: [
+            {
+              type: "text",
+              text: `Error retrieving Things3 todos for project "${project}": ${
                 error instanceof Error ? error.message : "Unknown error"
               }`,
             },
