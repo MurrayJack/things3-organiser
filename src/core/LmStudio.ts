@@ -23,3 +23,25 @@ export const serviceCall = async (prompt: string): Promise<any> => {
       .replace("```", ""),
   };
 };
+
+export const embeddingCall = async (
+  text: string | string[]
+): Promise<number[][]> => {
+  const response = await fetch("http://127.0.0.1:12345/v1/embeddings", {
+    method: "POST",
+    headers: {
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      model: "text-embedding-bge-small-en-v1.5",
+      input: text,
+    }),
+  });
+
+  if (!response.ok) {
+    throw new Error(`Error: ${response.statusText}`);
+  }
+  const json = await response.json();
+
+  return json.data.map((item: any) => item.embedding);
+};

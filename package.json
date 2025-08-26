@@ -27,10 +27,12 @@
   "dependencies": {
     "@langchain/openai": "^0.6.9",
     "@modelcontextprotocol/sdk": "^1.17.4",
+    "@qdrant/js-client-rest": "^1.15.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "express": "^5.1.0",
     "langfuse": "^3.38.4",
+    "openai": "^5.15.0",
     "zod": "^3.25.76"
   }
 }
