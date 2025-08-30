@@ -1,4 +1,4 @@
-import { fetchPrompt, getLangFusePrompt } from "./core/langFuse";
+import { fetchPrompt } from "./core/langFuse";
 import { serviceCall } from "./core/LmStudio";
 import {
   getInboxData,

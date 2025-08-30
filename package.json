@@ -30,8 +30,10 @@
     "@qdrant/js-client-rest": "^1.15.1",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
+    "duck-duck-scrape": "^2.2.7",
     "express": "^5.1.0",
     "langfuse": "^3.38.4",
+    "node-fetch": "^3.3.2",
     "openai": "^5.15.0",
     "zod": "^3.25.76"
   }

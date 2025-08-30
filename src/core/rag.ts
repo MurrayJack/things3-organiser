@@ -5,21 +5,22 @@ import * as fs from "fs";
 import * as path from "path";
 
 // ----- Types -----
-type RagPayload = {
+export type RagPayload = {
   doc_id: string;
   source: string;
+  full_path: string;
   chunk_index: number;
   text: string;
   tags: string[];
 };
 
-type QdrantPoint = {
+export type QdrantPoint = {
   id: string | number;
   vector: number[];
   payload: RagPayload;
 };
 
-type QdrantSearchResult = {
+export type QdrantSearchResult = {
   id: string | number;
   score: number;
   payload: RagPayload;
@@ -151,6 +152,34 @@ async function search(
   return results as unknown as QdrantSearchResult[];
 }
 
+// ----- Public RAG Query Function -----
+export async function queryRAG(
+  query: string,
+  limit: number = 5,
+  tags?: string[]
+): Promise<QdrantSearchResult[]> {
+  try {
+    // Create embedding for the query
+    const [queryVec] = await embedTexts([query]);
+    const queryVecNorm = l2Normalize(queryVec);
+
+    // Build filter if tags are provided
+    let filter;
+    if (tags && tags.length > 0) {
+      filter = {
+        must: [{ key: "tags", match: { any: tags } }],
+      };
+    }
+
+    // Search
+    const results = await search(queryVecNorm, limit, filter);
+    return results;
+  } catch (error) {
+    console.error("Error in RAG query:", error);
+    throw error;
+  }
+}
+
 // ----- Demo ingest + search -----
 async function main(): Promise<void> {
   const obsidianPath = "/Users/mjack/Obsidian";
@@ -199,6 +228,7 @@ async function main(): Promise<void> {
         payload: {
           doc_id: `file-${pointId}`,
           source: relativePath,
+          full_path: filePath,
           chunk_index: i,
           text: chunks[i],
           tags: ["obsidian", "markdown", "knowledge"],
