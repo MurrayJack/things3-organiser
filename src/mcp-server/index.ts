@@ -1,13 +1,12 @@
 import express from "express";
 import { randomUUID } from "node:crypto";
-import {
-  McpServer,
-  ResourceTemplate,
-} from "@modelcontextprotocol/sdk/server/mcp.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import cors from "cors";
-import { buildServer } from "./core/mcp";
+import { buildServer } from "../core/mcp";
+
+import dotenv from "dotenv";
+dotenv.config();
 
 const app = express();
 app.use(express.json({ limit: "10mb" })); // Increase JSON payload limit

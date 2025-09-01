@@ -1,11 +1,11 @@
-import { fetchPrompt } from "./core/langFuse";
-import { serviceCall } from "./core/LmStudio";
+import { fetchPrompt } from "../core/langFuse";
+import { serviceCall } from "../core/LmStudio";
 import {
   getInboxData,
   getThingsProjects,
   getThingsTags,
   updateTodoItem,
-} from "./things3";
+} from "../core/things3";
 
 import dotenv from "dotenv";
 dotenv.config();
