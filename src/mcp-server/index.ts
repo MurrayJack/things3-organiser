@@ -3,7 +3,7 @@ import { randomUUID } from "node:crypto";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import cors from "cors";
-import { buildServer } from "../core/mcp";
+import { buildServer } from "../core/mcp/mcp-tools";
 
 import dotenv from "dotenv";
 dotenv.config();

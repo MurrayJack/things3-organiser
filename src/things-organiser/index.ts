@@ -1,5 +1,6 @@
 import { fetchPrompt } from "../core/langFuse";
-import { serviceCall } from "../core/LmStudio";
+import { serviceCall } from "../core/llm/LmStudio";
+import { PromptFlowClient } from "../core/llm/promptFlow";
 import {
   getInboxData,
   getThingsProjects,
@@ -30,36 +31,20 @@ dotenv.config();
     for (const todo of todos) {
       console.log("Processing TODO item:", todo.name);
 
-      // using LM Studio connect the item to a project
-      const prompt = await fetchPrompt("review-todo-item");
+      const promptFlow = PromptFlowClient.fromEnvironment();
 
-      if (!prompt) {
-        console.error("Failed to fetch prompt");
-        continue;
-      }
+      const result = await promptFlow.invoke({
+        todo,
+        "todays-date": new Date().toISOString().split("T")[0],
+        projects: projects.map((p) => p),
+        tags: tags.map((t) => t),
+      });
 
-      const filledPrompt = prompt.prompt
-        .replace("{{TODO}}", JSON.stringify(todo, undefined, 4))
-        .replace("{{TODAYS_DATE}}", new Date().toISOString().split("T")[0])
-        .replace(
-          "{{PROJECTS}}",
-          JSON.stringify(
-            projects.map((p) => p),
-            undefined,
-            4
-          )
-        )
-        .replace(
-          "{{TAGS}}",
-          JSON.stringify(
-            tags.map((t) => t),
-            undefined,
-            4
-          )
-        );
+      const newTodo = JSON.parse(
+        result.todo.replace("```json", "").replace("```", "").trim()
+      );
 
-      const project = await serviceCall(filledPrompt);
-      const newTodo = JSON.parse(project.content);
+      console.log(newTodo);
 
       // update the TODO item with the selected project and tags
       await updateTodoItem({

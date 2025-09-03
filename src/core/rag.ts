@@ -1,6 +1,5 @@
-import "dotenv/config";
 import { QdrantClient } from "@qdrant/js-client-rest";
-import { embeddingCall } from "./LmStudio";
+import { embeddingCall } from "./llm/LmStudio";
 import * as fs from "fs";
 import * as path from "path";
 

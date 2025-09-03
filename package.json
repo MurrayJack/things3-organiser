@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "scripts": {
-    "start:organizer": "npx tsx src/index.ts",
+    "start:organizer": "npx tsx src/things-organiser/index.ts",
     "start:mcp": "npx tsx src/mcpServer.ts",
     "start": "concurrently \"npx tsx src/mcp-server/index.ts\" \"npx tsx src/things-organiser/index.ts\" --names \"server,organizer\" --prefix-colors \"cyan,green\"",
     "docker:build": "docker build -t things3-organiser .",
@@ -28,6 +28,7 @@
     "@langchain/openai": "^0.6.9",
     "@modelcontextprotocol/sdk": "^1.17.4",
     "@qdrant/js-client-rest": "^1.15.1",
+    "axios": "^1.11.0",
     "cors": "^2.8.5",
     "dotenv": "^17.2.1",
     "duck-duck-scrape": "^2.2.7",

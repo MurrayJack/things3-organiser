@@ -10,8 +10,8 @@ import {
   getTodaysData,
   updateTodoItem,
   getTodosByProject,
-} from "./things3.js";
-import { queryRAG, QdrantSearchResult } from "./rag.js";
+} from "../things3.js";
+import { queryRAG, QdrantSearchResult } from "../rag.js";
 import { search } from "duck-duck-scrape";
 
 export const buildServer = () => {
